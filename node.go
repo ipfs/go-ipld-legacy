@@ -2,6 +2,7 @@ package ipldlegacy
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -176,7 +177,8 @@ func (ln *LegacyNode) ResolveLink(path []string) (*format.Link, []string, error)
 
 // Copy returns a deep copy of this node
 func (ln *LegacyNode) Copy() format.Node {
-	panic("not implemented")
+	nd, _ := DecodeNode(context.TODO(), ln.Block)
+	return nd
 }
 
 // Links is a helper function that returns all links within this object
@@ -202,4 +204,4 @@ func (ln *LegacyNode) Size() (uint64, error) {
 	return uint64(len(ln.RawData())), nil
 }
 
-var _ format.Node = &LegacyNode{}
+var _ UniversalNode = &LegacyNode{}
