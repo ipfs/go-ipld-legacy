@@ -40,7 +40,7 @@ func TestResolve(t *testing.T) {
 		"errors on path beyond terminal type": {
 			node:        legacyRootNode,
 			path:        []string{"plain", "old"},
-			expectedErr: fmt.Errorf("cannot traverse node at \"plain\": cannot traverse terminals"),
+			expectedErr: fmt.Errorf("error traversing at \"plain\": tried to resolve through object that had no links"),
 		},
 		"stops at link with remaining": {
 			node:              legacyRootNode,

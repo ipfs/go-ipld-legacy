@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -21,9 +22,23 @@ func (e errorType) Error() string {
 	return string(e)
 }
 
+func ErrorAtPathSegment(seg ipld.PathSegment, base ipld.Path, baseError error) error {
+	return fmt.Errorf("error traversing segement %q on node at %q: %w", seg, base, baseError)
+}
+
+func ErrorAtPath(base ipld.Path, baseError error) error {
+	return fmt.Errorf("error traversing at %q: %w", base, baseError)
+}
+
 const (
 	// ErrNonLink is returned when ResolveLink is called on a node that is not a link
 	ErrNonLink = errorType("non-link found at given path")
+	// ErrNoSuchLink is returned when ResolveLink is called on a path that does not exist
+	ErrNoSuchLink = errorType("no such link found")
+	// ErrArrayOutOfRange is returned when Resolve link is called on a list that where the index is out of range
+	ErrArrayOutOfRange = errorType("array index out of range")
+	// ErrNoLinks is returned when we try to traverse through a terminal
+	ErrNoLinks = errorType("tried to resolve through object that had no links")
 )
 
 // LegacyNode wraps a go-ipld-prime node & a block so that it can be treated as
@@ -42,23 +57,23 @@ func (ln *LegacyNode) focusToLinkEdge(p ipld.Path) (ipld.Node, []ipld.PathSegmen
 		case ipld.Kind_Map:
 			next, err := n.LookupByString(seg.String())
 			if err != nil {
-				return nil, nil, fmt.Errorf("error traversing segment %q on node at %q: %s", seg, p.Truncate(i), err)
+				return nil, nil, ErrorAtPathSegment(seg, p.Truncate(i), ErrNoSuchLink)
 			}
 			n = next
 		case ipld.Kind_List:
 			intSeg, err := seg.Index()
 			if err != nil {
-				return nil, nil, fmt.Errorf("error traversing segment %q on node at %q: the segment cannot be parsed as a number and the node is a list", seg, p.Truncate(i))
+				return nil, nil, ErrorAtPathSegment(seg, p.Truncate(i), errors.New("the segment cannot be parsed as a number and the node is a list"))
 			}
 			next, err := n.LookupByIndex(intSeg)
 			if err != nil {
-				return nil, nil, fmt.Errorf("error traversing segment %q on node at %q: %s", seg, p.Truncate(i), err)
+				return nil, nil, ErrorAtPathSegment(seg, p.Truncate(i), ErrArrayOutOfRange)
 			}
 			n = next
 		case ipld.Kind_Link:
 			return n, p.Segments()[i:], nil
 		default:
-			return nil, nil, fmt.Errorf("cannot traverse node at %q: %s", p.Truncate(i), fmt.Errorf("cannot traverse terminals"))
+			return nil, nil, ErrorAtPath(p.Truncate(i), ErrNoLinks)
 		}
 	}
 	return n, nil, nil
