@@ -1,10 +1,6 @@
 package ipldlegacy
 
 import (
-	"bytes"
-	"context"
-	"io"
-
 	blocks "github.com/ipfs/go-block-format"
 	format "github.com/ipfs/go-ipld-format"
 	"github.com/ipld/go-ipld-prime"
@@ -34,7 +30,7 @@ func RegisterCodec(codec uint64, prototype ipld.NodePrototype, converter NodeCon
 }
 
 // DecodeNode builds a UniversalNode from a block
-func DecodeNode(ctx context.Context, b blocks.Block) (UniversalNode, error) {
+func DecodeNode(lsys ipld.LinkSystem, b blocks.Block) (UniversalNode, error) {
 	c := b.Cid()
 	link := cidlink.Link{Cid: c}
 	var prototype ipld.NodePrototype = basicnode.Prototype.Any
@@ -42,14 +38,10 @@ func DecodeNode(ctx context.Context, b blocks.Block) (UniversalNode, error) {
 	if hasConverter {
 		prototype = converter.prototype
 	}
-	nb := prototype.NewBuilder()
-	err := link.Load(ctx, ipld.LinkContext{}, nb, func(lnk ipld.Link, lnkCtx ipld.LinkContext) (io.Reader, error) {
-		return bytes.NewBuffer(b.RawData()), nil
-	})
+	nd, err := lsys.Load(ipld.LinkContext{}, link, prototype)
 	if err != nil {
 		return nil, err
 	}
-	nd := nb.Build()
 
 	if hasConverter {
 		return converter.converter(b, nd)
