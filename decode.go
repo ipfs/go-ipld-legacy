@@ -37,6 +37,7 @@ var linkSystemBase ipld.LinkSystem
 
 func init() {
 	linkSystemBase = cidlink.DefaultLinkSystem()
+	linkSystemBase.TrustedStorage = true
 }
 
 // DecodeNode builds a UniversalNode from a block
