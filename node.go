@@ -2,7 +2,6 @@ package ipldlegacy
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -103,7 +102,7 @@ func (ln *LegacyNode) Resolve(path []string) (interface{}, []string, error) {
 		return &format.Link{Cid: link.(cidlink.Link).Cid}, remainingStrings, nil
 	}
 	buf := new(bytes.Buffer)
-	err = dagjson.Encoder(n, buf)
+	err = dagjson.Encode(n, buf)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -192,8 +191,12 @@ func (ln *LegacyNode) ResolveLink(path []string) (*format.Link, []string, error)
 
 // Copy returns a deep copy of this node
 func (ln *LegacyNode) Copy() format.Node {
-	nd, _ := DecodeNode(context.TODO(), ln.Block)
-	return nd
+	nb := ln.Node.Prototype().NewBuilder()
+	err := nb.AssignNode(ln.Node)
+	if err != nil {
+		return nil
+	}
+	return &LegacyNode{ln.Block, nb.Build()}
 }
 
 // Links is a helper function that returns all links within this object
