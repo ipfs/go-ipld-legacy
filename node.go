@@ -192,7 +192,10 @@ func (ln *LegacyNode) ResolveLink(path []string) (*format.Link, []string, error)
 // Copy returns a deep copy of this node
 func (ln *LegacyNode) Copy() format.Node {
 	nb := ln.Node.Prototype().NewBuilder()
-	_ = nb.AssignNode(ln.Node)
+	err := nb.AssignNode(ln.Node)
+	if err != nil {
+		return nil
+	}
 	return &LegacyNode{ln.Block, nb.Build()}
 }
 
