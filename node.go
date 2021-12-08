@@ -222,4 +222,15 @@ func (ln *LegacyNode) Size() (uint64, error) {
 	return uint64(len(ln.RawData())), nil
 }
 
+// MarshalJSON implements a JSON Marshaller interface for objects
+// that expect marshalled json
+func (ln *LegacyNode) MarshalJSON() ([]byte, error) {
+	buf := new(bytes.Buffer)
+	err := dagjson.Encode(ln.Node, buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
 var _ UniversalNode = &LegacyNode{}
