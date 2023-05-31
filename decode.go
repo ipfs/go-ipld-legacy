@@ -40,6 +40,13 @@ func NewDecoder() *Decoder {
 	}
 }
 
+func NewDecoderWithLS(ls ipld.LinkSystem) *Decoder {
+	return &Decoder{
+		codecTable:     map[uint64]codecConverter{},
+		linkSystemBase: ls,
+	}
+}
+
 // RegisterCodec registers a specialized prototype & converter for a specific codec
 func (d *Decoder) RegisterCodec(codec uint64, prototype ipld.NodePrototype, converter NodeConverter) {
 	d.codecTable[codec] = codecConverter{prototype, converter}
