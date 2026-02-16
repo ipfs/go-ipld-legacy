@@ -28,7 +28,7 @@ func TestResolve(t *testing.T) {
 	testCases := map[string]struct {
 		node              *ipldlegacy.LegacyNode
 		path              []string
-		expectedValue     interface{}
+		expectedValue     any
 		expectedRemaining []string
 		expectedErr       error
 	}{
@@ -61,8 +61,8 @@ func TestResolve(t *testing.T) {
 		"resolves complex types": {
 			node: legacyMapNode,
 			path: []string{"nested"},
-			expectedValue: map[string]interface{}{
-				"alink": map[string]interface{}{
+			expectedValue: map[string]any{
+				"alink": map[string]any{
 					"/": tree.LeafAlphaLnk.String(),
 				},
 				"nonlink": "zoo",
